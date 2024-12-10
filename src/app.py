@@ -3,9 +3,8 @@ from black_scholes import black_scholes
 from volatility_fetcher import fetch_volatility
 from heatmap_generator import generate_heatmaps
 
-# # Set page config
-#SET if page is wide
-# st.set_page_config(layout="wide", page_title="Black-Scholes Calculator", page_icon="📈")
+# Set page config
+st.set_page_config(layout="wide", page_title="Black-Scholes Calculator", page_icon="📈")
 
 # Predefined list of stock tickers for suggestions (can be expanded)
 STOCK_TICKERS = [
