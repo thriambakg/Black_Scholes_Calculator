@@ -50,6 +50,8 @@ T = st.sidebar.number_input("Time to Maturity (T) (in years)", min_value=0.01, s
 r = st.sidebar.number_input("Risk-Free Interest Rate (r) (as a decimal)", min_value=0.0, step=0.01, value=0.05)
 sigma = st.sidebar.number_input("Volatility (σ) (as a decimal)", min_value=0.0, step=0.01, value=0.2)
 
+st.header("Black-Scholes Calculation")
+
 # Create empty spaces for live readings of call and put prices
 call_price_placeholder = st.empty()
 put_price_placeholder = st.empty()
