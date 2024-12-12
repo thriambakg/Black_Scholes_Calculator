@@ -198,29 +198,32 @@ if calculate_portfolio:
                 with col1:
                     st.metric(
                         "Total Portfolio Value", 
-                        f"${portfolio_metrics['total_portfolio_value']:,.2f}"
+                        f"${portfolio_metrics['total_portfolio_value']:,.2f}",
+                        help="The total dollar value of your portfolio based on the current market prices of all included stocks."
                     )
                 
                 with col2:
                     st.metric(
                         "Expected Annual Return", 
-                        f"{portfolio_metrics['portfolio_expected_return']:.2f}%"
+                        f"{portfolio_metrics['portfolio_expected_return']:.2f}%",
+                        help="The estimated percentage return your portfolio is expected to achieve annually, based on historical performance over the past year."
                     )
                 
                 with col3:
                     st.metric(
                         "Portfolio Volatility", 
-                        f"{portfolio_metrics['portfolio_volatility']:.2f}%"
+                        f"{portfolio_metrics['portfolio_volatility']:.2f}%",
+                        help="A measure of the portfolio's risk, calculated as the standard deviation of its returns over a period of one year. Higher values indicate more risk."
                     )
 
                 with col4:
                     st.metric(
                         "Sharpe Ratio", 
-                        f"{portfolio_metrics['sharpe_ratio']:.2f}%"
+                        f"{portfolio_metrics['sharpe_ratio']:.2f}%",
+                        help="A risk-adjusted measure of return that indicates how much return you receive for each unit of risk taken. A higher value indicates a higher return on lower risk"
                     )
-                
-                # Display detailed stock breakdown
-                st.subheader("Individual Stock Details")
+                    # Display detailed stock breakdown
+                    st.subheader("Individual Stock Details")
 
                 # Convert the stock details dictionary into a DataFrame
                 stock_details_df = pd.DataFrame.from_dict(
