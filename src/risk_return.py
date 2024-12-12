@@ -2,10 +2,63 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import logging
+from volatility_fetcher import fetch_volatility as fv
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def calculate_correlation(tickers, period="1y"):
+    """
+    Calculate the correlation coefficient between a list of stock tickers over a specified period.
+
+    Args:
+    tickers (list): A list of stock tickers (e.g., ['AAPL', 'GOOGL', 'AMZN']).
+    period (str): The period to retrieve the data for, default is "1y" (1 year).
+
+    Returns:
+    pd.DataFrame: A correlation matrix of stock returns.
+    """
+    # Fetch historical data for the given tickers
+    stock_data = yf.download(tickers, period=period)['Adj Close']
+    
+    # Ensure that the data is not empty
+    if stock_data.empty:
+        raise ValueError(f"Could not retrieve data for {', '.join(tickers)}")
+
+    # Calculate daily returns for each stock
+    daily_returns = stock_data.pct_change().dropna()
+
+    # Calculate the correlation matrix for the daily returns
+    correlation_matrix = daily_returns.corr()
+
+    return correlation_matrix
+
+def calculate_portfolio_variance(portfolio_weights, annual_volatilities, correlation_matrix):
+    """
+    Calculate the variance of a portfolio given the weights, volatilities, and correlation matrix.
+
+    Args:
+    portfolio_weights (numpy.array): Array of weights of the stocks in the portfolio.
+    annual_volatilities (numpy.array): Array of annual volatilities (standard deviations) of the stocks.
+    correlation_matrix (pandas.DataFrame): Correlation matrix of stock returns.
+
+    Returns:
+    float: Portfolio variance.
+    """
+
+    portfolio_weights = np.array(portfolio_weights)
+    annual_volatilities = np.array(annual_volatilities)
+    correlation_matrix = np.array(correlation_matrix)
+    # Convert correlation matrix to a covariance matrix
+    # Calculate the covariance matrix using the volatilities and correlation matrix
+    cov_matrix = correlation_matrix * np.outer(annual_volatilities, annual_volatilities)
+
+    # Calculate portfolio variance using the formula: w^T * covariance_matrix * w
+    portfolio_variance = np.dot(portfolio_weights.T, np.dot(cov_matrix, portfolio_weights))
+
+    return np.sqrt(portfolio_variance)
+
 
 def calculate_portfolio_metrics(portfolio_tuples, risk_free_rate=0.05):
     """
@@ -47,7 +100,7 @@ def calculate_portfolio_metrics(portfolio_tuples, risk_free_rate=0.05):
     stock_details = {}
     portfolio_weights = []
     expected_returns = []
-    stock_variances = []
+    annual_volatilities = []
     
     for ticker, shares, current_price in portfolio_tuples:
         # Skip if data is insufficient
@@ -58,14 +111,14 @@ def calculate_portfolio_metrics(portfolio_tuples, risk_free_rate=0.05):
         # Calculate individual stock metrics
         stock_returns = returns[ticker]
         avg_annual_return = stock_returns.mean() * 252  # Annualized return
-        annual_volatility = stock_returns.std() * np.sqrt(252)  # Annualized volatility
+        annual_volatility = fv(ticker)
         
         # Calculate portfolio weight
         stock_value = shares * current_price
         weight = stock_value / total_portfolio_value
         portfolio_weights.append(weight)
         expected_returns.append(avg_annual_return)
-        stock_variances.append(annual_volatility ** 2)
+        annual_volatilities.append(annual_volatility)
         
         # Store stock details
         stock_details[ticker] = {
@@ -85,15 +138,9 @@ def calculate_portfolio_metrics(portfolio_tuples, risk_free_rate=0.05):
     portfolio_expected_return = np.dot(portfolio_weights, expected_returns)
     
     # Portfolio variance calculation (including covariance)
-    correlation_matrix = returns.corr()
+    correlation_matrix = calculate_correlation(stock_tickers)
 
-    std_devs = returns.std()  # Calculate standard deviation (volatility) of each stock's returns
-    covariance_matrix = correlation_matrix * np.outer(std_devs, std_devs)
-    portfolio_variance = np.dot(
-    np.dot(portfolio_weights, covariance_matrix.loc[stock_tickers, stock_tickers].values), 
-    portfolio_weights
-    )
-    portfolio_volatility = np.sqrt(portfolio_variance)
+    portfolio_volatility = calculate_portfolio_variance(portfolio_weights, annual_volatilities, correlation_matrix)
     
     # Sharpe Ratio calculation
     sharpe_ratio = (portfolio_expected_return - risk_free_rate) / portfolio_volatility
@@ -118,22 +165,22 @@ def main(portfolio_tuples):
         # Calculate portfolio metrics
         portfolio_metrics = calculate_portfolio_metrics(portfolio_tuples)
         
-        # Print formatted results
-        print("\n--- Portfolio Analysis ---")
-        print(f"Total Portfolio Value: ${portfolio_metrics['total_portfolio_value']:,.2f}")
-        print(f"Portfolio Expected Annual Return: {portfolio_metrics['portfolio_expected_return']:.2f}%")
-        print(f"Portfolio Volatility (Risk): {portfolio_metrics['portfolio_volatility']:.2f}%")
-        print(f"Sharpe Ratio: {portfolio_metrics['sharpe_ratio']:.2f}")
+        # # Print formatted results
+        # print("\n--- Portfolio Analysis ---")
+        # print(f"Total Portfolio Value: ${portfolio_metrics['total_portfolio_value']:,.2f}")
+        # print(f"Portfolio Expected Annual Return: {portfolio_metrics['portfolio_expected_return']:.2f}%")
+        # print(f"Portfolio Volatility (Risk): {portfolio_metrics['portfolio_volatility']:.2f}%")
+        # print(f"Sharpe Ratio: {portfolio_metrics['sharpe_ratio']:.2f}")
         
-        print("\nIndividual Stock Details:")
-        for ticker, details in portfolio_metrics['stock_details'].items():
-            print(f"\n{ticker}:")
-            print(f"  Shares: {details['shares']}")
-            print(f"  Current Price: ${details['current_price']:.2f}")
-            print(f"  Total Value: ${details['shares'] * details['current_price']:,.2f}")
-            print(f"  Weight: {details['weight']*100:.2f}%")
-            print(f"  Annual Return: {details['annual_return']*100:.2f}%")
-            print(f"  Annual Volatility: {details['annual_volatility']*100:.2f}%")
+        # print("\nIndividual Stock Details:")
+        # for ticker, details in portfolio_metrics['stock_details'].items():
+        #     print(f"\n{ticker}:")
+        #     print(f"  Shares: {details['shares']}")
+        #     print(f"  Current Price: ${details['current_price']:.2f}")
+        #     print(f"  Total Value: ${details['shares'] * details['current_price']:,.2f}")
+        #     print(f"  Weight: {details['weight']*100:.2f}%")
+        #     print(f"  Annual Return: {details['annual_return']*100:.2f}%")
+        #     print(f"  Annual Volatility: {details['annual_volatility']*100:.2f}%")
         
         return portfolio_metrics
     
@@ -142,12 +189,12 @@ def main(portfolio_tuples):
         logger.error(f"Portfolio calculation failed: {e}")
         return None
 
-# Allow direct script execution for testing
-if __name__ == "__main__":
-    # Example usage for testing
-    test_portfolio = [
-        ('AAPL', 10, 190.50),  # ticker, shares, current price
-        ('GOOGL', 5, 125.75),
-        ('MSFT', 7, 340.20)
-    ]
-    main(test_portfolio)
+# # Allow direct script execution for testing
+# if __name__ == "__main__":
+#     # Example usage for testing
+#     test_portfolio = [
+#         ('AAPL', 10, 190.50),  # ticker, shares, current price
+#         ('GOOGL', 5, 125.75),
+#         ('MSFT', 7, 340.20)
+#     ]
+#     main(test_portfolio)
