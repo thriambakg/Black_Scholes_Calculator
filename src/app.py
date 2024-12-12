@@ -223,7 +223,7 @@ if calculate_portfolio:
                         help="A risk-adjusted measure of return that indicates how much return you receive for each unit of risk taken. A higher value indicates a higher return on lower risk"
                     )
                     # Display detailed stock breakdown
-                    st.subheader("Individual Stock Details")
+                st.subheader("Individual Stock Details")
 
                 # Convert the stock details dictionary into a DataFrame
                 stock_details_df = pd.DataFrame.from_dict(
