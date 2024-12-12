@@ -95,10 +95,44 @@ max_S = st.sidebar.number_input("Maximum Stock Price (S)", min_value=0.0, step=1
 min_sigma = st.sidebar.slider("Minimum Volatility (σ)", 0.01, 1.0, 0.1)
 max_sigma = st.sidebar.slider("Maximum Volatility (σ)", 0.01, 1.0, 0.5)
 
-# Generate and display the heatmaps
-heatmaps = generate_heatmaps(S, K, T, r, min_S, max_S, min_sigma, max_sigma)
-st.plotly_chart(heatmaps["call"], use_container_width=True)
-st.plotly_chart(heatmaps["put"], use_container_width=True)
+# Initialize session state for heatmap parameters and heatmaps
+if "heatmap_params" not in st.session_state:
+    st.session_state.heatmap_params = {
+        "min_S": None,
+        "max_S": None,
+        "min_sigma": None,
+        "max_sigma": None,
+    }
+    st.session_state.heatmaps = None  # Store generated heatmaps in session state
+
+# Check for changes in the sidebar inputs
+def has_heatmap_params_changed():
+    return (
+        st.session_state.heatmap_params["min_S"] != min_S
+        or st.session_state.heatmap_params["max_S"] != max_S
+        or st.session_state.heatmap_params["min_sigma"] != min_sigma
+        or st.session_state.heatmap_params["max_sigma"] != max_sigma
+    )
+
+# Generate heatmaps if:
+# - Parameters have changed, or
+# - Heatmaps are not initialized (e.g., on the first page load)
+if has_heatmap_params_changed() or st.session_state.heatmaps is None:
+    # Generate heatmaps
+    st.session_state.heatmaps = generate_heatmaps(S, K, T, r, min_S, max_S, min_sigma, max_sigma)
+    
+    # Update the session state with new parameters
+    st.session_state.heatmap_params = {
+        "min_S": min_S,
+        "max_S": max_S,
+        "min_sigma": min_sigma,
+        "max_sigma": max_sigma,
+    }
+
+# Display the heatmaps from session state
+if st.session_state.heatmaps:
+    st.plotly_chart(st.session_state.heatmaps["call"], use_container_width=True)
+    st.plotly_chart(st.session_state.heatmaps["put"], use_container_width=True)
 
 # Calculate the risk of your overall portfolio and your expected rate of return
 st.markdown("---")
@@ -107,11 +141,11 @@ st.header("Portfolio Risk Calculator")
 
 # Initialize session state for portfolio entries if not already exists
 if 'portfolio_entries' not in st.session_state:
-    st.session_state.portfolio_entries = [{"stock": "", "shares": 0}]
+    st.session_state.portfolio_entries = [{"stock": "", "shares": 0.0}]
 
 # Function to add a new portfolio entry
 def add_portfolio_entry():
-    st.session_state.portfolio_entries.append({"stock": "", "shares": 0})
+    st.session_state.portfolio_entries.append({"stock": "", "shares": 0.0})
 
 # Function to remove the last portfolio entry
 def remove_portfolio_entry():
@@ -124,7 +158,7 @@ st.write("Enter your stock portfolio:")
 # Create input fields for each portfolio entry
 for i, entry in enumerate(st.session_state.portfolio_entries):
     col1, col2, col3 = st.columns([3, 2, 1])
-    
+
     with col1:
         # Stock ticker input with suggestions
         entry['stock'] = st.text_input(
@@ -133,7 +167,7 @@ for i, entry in enumerate(st.session_state.portfolio_entries):
             key=f"stock_input_{i}",
             placeholder="Enter stock ticker (e.g., AAPL)"
         )
-    
+
     with col2:
         # Number of shares input - modified to allow decimal values
         entry['shares'] = st.number_input(
@@ -144,11 +178,11 @@ for i, entry in enumerate(st.session_state.portfolio_entries):
             key=f"shares_input_{i}",
             format="%.3f"  # Display 3 decimal places
         )
-    
+
     # Remove button for all entries except the first
     if i > 0:
         with col3:
-            st.write("") # Align with input
+            st.write("")  # Align with input
             st.button("➖", key=f"remove_{i}", on_click=remove_portfolio_entry)
 
 # Row of buttons for adding entries and calculating
@@ -173,7 +207,7 @@ if calculate_portfolio:
                 # Fetch current stock price
                 stock = yf.Ticker(entry['stock'].upper())
                 current_price = stock.history(period="1d")['Close'].iloc[-1]
-                
+
                 # Create tuple with stock ticker, shares, and current price
                 portfolio_tuples.append((
                     entry['stock'].upper(), 
@@ -182,33 +216,33 @@ if calculate_portfolio:
                 ))
             except Exception as e:
                 st.error(f"Error fetching price for {entry['stock']}: {e}")
-    
+
     if portfolio_tuples:
         try:
             # Call the risk_return module's main function
             portfolio_metrics = calculate_portfolio_risk(portfolio_tuples)
-            
+
             # Display results in a more structured way
             if portfolio_metrics:
                 portfolio_results.markdown("### Portfolio Analysis Results")
-                
+
                 # Create columns for key metrics
                 col1, col2, col3, col4 = st.columns(4)
-                
+
                 with col1:
                     st.metric(
                         "Total Portfolio Value", 
                         f"${portfolio_metrics['total_portfolio_value']:,.2f}",
                         help="The total dollar value of your portfolio based on the current market prices of all included stocks."
                     )
-                
+
                 with col2:
                     st.metric(
                         "Expected Annual Return", 
                         f"{portfolio_metrics['portfolio_expected_return']:.2f}%",
                         help="The estimated percentage return your portfolio is expected to achieve annually, based on historical performance over the past year."
                     )
-                
+
                 with col3:
                     st.metric(
                         "Portfolio Volatility", 
@@ -219,10 +253,11 @@ if calculate_portfolio:
                 with col4:
                     st.metric(
                         "Sharpe Ratio", 
-                        f"{portfolio_metrics['sharpe_ratio']:.2f}%",
-                        help="A risk-adjusted measure of return that indicates how much return you receive for each unit of risk taken. A higher value indicates a higher return on lower risk"
+                        f"{portfolio_metrics['sharpe_ratio']:.2f}",
+                        help="A risk-adjusted measure of return that indicates how much return you receive for each unit of risk taken. A higher value indicates a higher return on lower risk."
                     )
-                    # Display detailed stock breakdown
+
+                # Display detailed stock breakdown
                 st.subheader("Individual Stock Details")
 
                 # Convert the stock details dictionary into a DataFrame
@@ -246,7 +281,7 @@ if calculate_portfolio:
                     'Current Price': '${:.2f}',
                     'Total Value': '${:,.2f}'
                 }))
-        
+
         except Exception as e:
             portfolio_results.error(f"Error calculating portfolio risk: {str(e)}")
     else:
