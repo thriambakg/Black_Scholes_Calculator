@@ -143,6 +143,10 @@ st.header("Portfolio Risk Calculator")
 if 'portfolio_entries' not in st.session_state:
     st.session_state.portfolio_entries = [{"stock": "", "shares": 0.0}]
 
+# Initialize session state for storing portfolio results if not already exists
+if 'portfolio_results' not in st.session_state:
+    st.session_state.portfolio_results = None
+
 # Function to add a new portfolio entry
 def add_portfolio_entry():
     st.session_state.portfolio_entries.append({"stock": "", "shares": 0.0})
@@ -219,73 +223,82 @@ if calculate_portfolio:
 
     if portfolio_tuples:
         try:
-            # Call the risk_return module's main function
+            # Call the risk_return module's main function (ensure it is defined)
             portfolio_metrics = calculate_portfolio_risk(portfolio_tuples)
 
-            # Display results in a more structured way
-            if portfolio_metrics:
-                portfolio_results.markdown("### Portfolio Analysis Results")
-
-                # Create columns for key metrics
-                col1, col2, col3, col4 = st.columns(4)
-
-                with col1:
-                    st.metric(
-                        "Total Portfolio Value", 
-                        f"${portfolio_metrics['total_portfolio_value']:,.2f}",
-                        help="The total dollar value of your portfolio based on the current market prices of all included stocks."
-                    )
-
-                with col2:
-                    st.metric(
-                        "Expected Annual Return", 
-                        f"{portfolio_metrics['portfolio_expected_return']:.2f}%",
-                        help="The estimated percentage return your portfolio is expected to achieve annually, based on historical performance over the past year."
-                    )
-
-                with col3:
-                    st.metric(
-                        "Portfolio Volatility", 
-                        f"{portfolio_metrics['portfolio_volatility']:.2f}%",
-                        help="A measure of the portfolio's risk, calculated as the standard deviation of its returns over a period of one year. Higher values indicate more risk."
-                    )
-
-                with col4:
-                    st.metric(
-                        "Sharpe Ratio", 
-                        f"{portfolio_metrics['sharpe_ratio']:.2f}",
-                        help="A risk-adjusted measure of return that indicates how much return you receive for each unit of risk taken. A higher value indicates a higher return on lower risk."
-                    )
-
-                # Display detailed stock breakdown
-                st.subheader("Individual Stock Details")
-
-                # Convert the stock details dictionary into a DataFrame
-                stock_details_df = pd.DataFrame.from_dict(
-                    {ticker: {
-                        'Weight (%)': details['weight'] * 100,
-                        'Annual Return (%)': details['annual_return'] * 100,
-                        'Annual Volatility (%)': details['annual_volatility'] * 100,
-                        'Shares': details['shares'],
-                        'Current Price': details['current_price'],
-                        'Total Value': details['total_value']
-                    } for ticker, details in portfolio_metrics['stock_details'].items()},
-                    orient='index'
-                )
-
-                # Display the DataFrame in Streamlit
-                st.dataframe(stock_details_df.style.format({
-                    'Weight (%)': '{:.2f}',
-                    'Annual Return (%)': '{:.2f}',
-                    'Annual Volatility (%)': '{:.2f}',
-                    'Current Price': '${:.2f}',
-                    'Total Value': '${:,.2f}'
-                }))
+            # Store portfolio results in session state to preserve output
+            st.session_state.portfolio_results = portfolio_metrics
 
         except Exception as e:
-            portfolio_results.error(f"Error calculating portfolio risk: {str(e)}")
+            st.session_state.portfolio_results = {"error": f"Error calculating portfolio risk: {str(e)}"}
     else:
-        portfolio_results.warning("Please enter at least one stock with a valid number of shares.")
+        st.session_state.portfolio_results = {"warning": "Please enter at least one stock with a valid number of shares."}
+
+# Display stored portfolio results from session state
+if st.session_state.portfolio_results:
+    if 'error' in st.session_state.portfolio_results:
+        portfolio_results.error(st.session_state.portfolio_results['error'])
+    elif 'warning' in st.session_state.portfolio_results:
+        portfolio_results.warning(st.session_state.portfolio_results['warning'])
+    else:
+        # Display results in a more structured way
+        portfolio_results.markdown("### Portfolio Analysis Results")
+
+        # Create columns for key metrics
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric(
+                "Total Portfolio Value", 
+                f"${st.session_state.portfolio_results['total_portfolio_value']:,.2f}",
+                help="The total dollar value of your portfolio based on the current market prices of all included stocks."
+            )
+
+        with col2:
+            st.metric(
+                "Expected Annual Return", 
+                f"{st.session_state.portfolio_results['portfolio_expected_return']:.2f}%",
+                help="The estimated percentage return your portfolio is expected to achieve annually, based on historical performance over the past year."
+            )
+
+        with col3:
+            st.metric(
+                "Portfolio Volatility", 
+                f"{st.session_state.portfolio_results['portfolio_volatility']:.2f}%",
+                help="A measure of the portfolio's risk, calculated as the standard deviation of its returns over a period of one year. Higher values indicate more risk."
+            )
+
+        with col4:
+            st.metric(
+                "Sharpe Ratio", 
+                f"{st.session_state.portfolio_results['sharpe_ratio']:.2f}",
+                help="A risk-adjusted measure of return that indicates how much return you receive for each unit of risk taken. A higher value indicates a higher return on lower risk."
+            )
+
+        # Display detailed stock breakdown
+        st.subheader("Individual Stock Details")
+
+        # Convert the stock details dictionary into a DataFrame
+        stock_details_df = pd.DataFrame.from_dict(
+            {ticker: {
+                'Weight (%)': details['weight'] * 100,
+                'Annual Return (%)': details['annual_return'] * 100,
+                'Annual Volatility (%)': details['annual_volatility'] * 100,
+                'Shares': details['shares'],
+                'Current Price': details['current_price'],
+                'Total Value': details['total_value']
+            } for ticker, details in st.session_state.portfolio_results['stock_details'].items()},
+            orient='index'
+        )
+
+        # Display the DataFrame in Streamlit
+        st.dataframe(stock_details_df.style.format({
+            'Weight (%)': '{:.2f}',
+            'Annual Return (%)': '{:.2f}',
+            'Annual Volatility (%)': '{:.2f}',
+            'Current Price': '${:.2f}',
+            'Total Value': '${:,.2f}'
+        }))
 
 
 # Add LinkedIn profile link
