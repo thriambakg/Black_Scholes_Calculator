@@ -7,7 +7,7 @@ import yfinance as yf
 import pandas as pd
 
 # Set page config
-st.set_page_config(layout="wide", page_title="Black-Scholes Calculator", page_icon="📈")
+st.set_page_config(layout="wide", page_title="Cosine", page_icon="📈")
 
 # Predefined list of stock tickers for suggestions (can be expanded)
 STOCK_TICKERS = [
