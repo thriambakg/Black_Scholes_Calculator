@@ -83,7 +83,7 @@ def calculate_portfolio_metrics(portfolio_tuples, risk_free_rate=0.05):
     
     # Download historical stock data
     try:
-        stock_data = yf.download(stock_tickers, period="5y")['Adj Close']
+        stock_data = yf.download(stock_tickers, period="1y")['Adj Close']
         logger.info(f"Successfully downloaded data for {stock_tickers}")
     except Exception as e:
         logger.error(f"Error downloading stock data: {e}")
