@@ -2,7 +2,7 @@ import cryptocompare
 import pandas as pd
 import numpy as np
 from datetime import datetime
-
+#1
 # Function to fetch cryptocurrency statistics
 def get_crypto_stats(selected_crypto_symbol, period=365):
     try:
