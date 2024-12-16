@@ -6,8 +6,6 @@ from risk_return import main as calculate_portfolio_risk
 import yfinance as yf
 import pandas as pd
 
-
-
 # Set page config
 st.set_page_config(layout="wide", page_title="Cosine", page_icon="📈")
 
@@ -18,28 +16,6 @@ STOCK_TICKERS = [
 ]
 
 st.title("Black-Scholes Option Pricing Calculator")
-
-# Sidebar Header
-st.sidebar.header("Time frame involved in Analytics")
-
-# Initialize session state variables if not already set
-if "time_frame" not in st.session_state:
-    st.session_state["time_frame"] = "1y"  # Default time frame
-if "risk_results" not in st.session_state:
-    st.session_state["risk_results"] = None  # Placeholder for results
-
-# Dropdown for selecting the time frame
-time_frame = st.sidebar.selectbox(
-    "Select Time Frame",
-    options=["6mo", "1y", "5y"],  # Dropdown options
-    index=["6mo", "1y", "5y"].index(st.session_state["time_frame"])  # Set default based on session state
-)
-
-# Update the session state with the new time frame
-if st.session_state["time_frame"] != time_frame:
-    st.session_state["time_frame"] = time_frame
-    # Trigger recalculation of portfolio risk when time frame changes
-    st.session_state["risk_results"] = None
 
 # Add a section for stock volatility search above the main content
 st.header("Stock Volatility Fetcher")
@@ -60,7 +36,7 @@ volatility_display = st.empty()
 # Fetch volatility when button is clicked
 if fetch_volatility_button and ticker_input:
     try:
-        volatility = fetch_volatility(ticker_input, period=time_frame)
+        volatility = fetch_volatility(ticker_input)
         volatility_display.markdown(f"**Volatility for {ticker_input.upper()}:** {volatility:.4f}")
     except Exception as e:
         volatility_display.markdown(f"Error fetching volatility: {str(e)}")
@@ -160,17 +136,15 @@ if st.session_state.heatmaps:
 
 # Calculate the risk of your overall portfolio and your expected rate of return
 st.markdown("---")
-
-
 # Portfolio Risk Calculator Section
 st.header("Portfolio Risk Calculator")
 
 # Initialize session state for portfolio entries if not already exists
-if "portfolio_entries" not in st.session_state:
+if 'portfolio_entries' not in st.session_state:
     st.session_state.portfolio_entries = [{"stock": "", "shares": 0.0}]
 
 # Initialize session state for storing portfolio results if not already exists
-if "portfolio_results" not in st.session_state:
+if 'portfolio_results' not in st.session_state:
     st.session_state.portfolio_results = None
 
 # Function to add a new portfolio entry
@@ -182,57 +156,31 @@ def remove_portfolio_entry():
     if len(st.session_state.portfolio_entries) > 1:
         st.session_state.portfolio_entries.pop()
 
-# Function to calculate portfolio risk
-def calculate_portfolio_risk_results():
-    portfolio_tuples = []
-    for entry in st.session_state.portfolio_entries:
-        if entry["stock"].strip() and entry["shares"] > 0:
-            try:
-                # Fetch current stock price
-                stock = yf.Ticker(entry["stock"].upper())
-                current_price = stock.history(period="1d")["Close"].iloc[-1]
-
-                # Create tuple with stock ticker, shares, and current price
-                portfolio_tuples.append(
-                    (entry["stock"].upper(), entry["shares"], current_price)
-                )
-            except Exception as e:
-                st.error(f"Error fetching price for {entry['stock']}: {e}")
-
-    if portfolio_tuples:
-        try:
-            # Perform risk-return calculations using a helper module
-            portfolio_metrics = calculate_portfolio_risk(portfolio_tuples, period=st.session_state["time_frame"])
-            st.session_state.portfolio_results = portfolio_metrics
-        except Exception as e:
-            st.session_state.portfolio_results = {"error": f"Error calculating portfolio risk: {str(e)}"}
-    else:
-        st.session_state.portfolio_results = {"warning": "Please enter at least one stock with a valid number of shares."}
-
 # Portfolio Entry Input Layout
 st.write("Enter your stock portfolio:")
 
+# Create input fields for each portfolio entry
 for i, entry in enumerate(st.session_state.portfolio_entries):
     col1, col2, col3 = st.columns([3, 2, 1])
 
     with col1:
         # Stock ticker input with suggestions
-        entry["stock"] = st.text_input(
-            f"Stock Ticker {i + 1}",
-            value=entry["stock"],
+        entry['stock'] = st.text_input(
+            f"Stock Ticker {i+1}", 
+            value=entry['stock'], 
             key=f"stock_input_{i}",
-            placeholder="Enter stock ticker (e.g., AAPL)",
+            placeholder="Enter stock ticker (e.g., AAPL)"
         )
 
     with col2:
         # Number of shares input - modified to allow decimal values
-        entry["shares"] = st.number_input(
-            f"Number of Shares {i + 1}",
-            min_value=0.0,
-            value=float(entry.get("shares", 0.0)),
-            step=0.1,
+        entry['shares'] = st.number_input(
+            f"Number of Shares {i+1}", 
+            min_value=0.0,  # Changed to float 
+            value=float(entry.get('shares', 0.0)),  # Ensure float conversion
+            step=0.1,  # Allow increments of 0.1
             key=f"shares_input_{i}",
-            format="%.3f",
+            format="%.3f"  # Display 3 decimal places
         )
 
     # Remove button for all entries except the first
@@ -250,74 +198,97 @@ with col1:
 with col2:
     calculate_portfolio = st.button("Calculate Portfolio Risk")
 
-# Trigger automatic recalculation when time frame changes
-if st.session_state.get("time_frame") != time_frame:
-    st.session_state["time_frame"] = time_frame
-    calculate_portfolio_risk_results()
-
-# Perform calculations when the button is pressed
-if calculate_portfolio:
-    calculate_portfolio_risk_results()
-
 # Placeholder for portfolio risk results
 portfolio_results = st.empty()
 
+# Calculate Portfolio Risk
+if calculate_portfolio:
+    # Fetch current stock prices and calculate total portfolio value
+    portfolio_tuples = []
+    for entry in st.session_state.portfolio_entries:
+        if entry['stock'].strip() and entry['shares'] > 0:
+            try:
+                # Fetch current stock price
+                stock = yf.Ticker(entry['stock'].upper())
+                current_price = stock.history(period="1d")['Close'].iloc[-1]
+
+                # Create tuple with stock ticker, shares, and current price
+                portfolio_tuples.append((
+                    entry['stock'].upper(), 
+                    entry['shares'], 
+                    current_price
+                ))
+            except Exception as e:
+                st.error(f"Error fetching price for {entry['stock']}: {e}")
+
+    if portfolio_tuples:
+        try:
+            # Call the risk_return module's main function (ensure it is defined)
+            portfolio_metrics = calculate_portfolio_risk(portfolio_tuples)
+
+            # Store portfolio results in session state to preserve output
+            st.session_state.portfolio_results = portfolio_metrics
+
+        except Exception as e:
+            st.session_state.portfolio_results = {"error": f"Error calculating portfolio risk: {str(e)}"}
+    else:
+        st.session_state.portfolio_results = {"warning": "Please enter at least one stock with a valid number of shares."}
+
 # Display stored portfolio results from session state
 if st.session_state.portfolio_results:
-    if "error" in st.session_state.portfolio_results:
-        portfolio_results.error(st.session_state.portfolio_results["error"])
-    elif "warning" in st.session_state.portfolio_results:
-        portfolio_results.warning(st.session_state.portfolio_results["warning"])
+    if 'error' in st.session_state.portfolio_results:
+        portfolio_results.error(st.session_state.portfolio_results['error'])
+    elif 'warning' in st.session_state.portfolio_results:
+        portfolio_results.warning(st.session_state.portfolio_results['warning'])
     else:
+        # Display results in a more structured way
         portfolio_results.markdown("### Portfolio Analysis Results")
 
+        # Create columns for key metrics
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
             st.metric(
-                "Total Portfolio Value",
+                "Total Portfolio Value", 
                 f"${st.session_state.portfolio_results['total_portfolio_value']:,.2f}",
-                help="The total dollar value of your portfolio based on the current market prices of all included stocks.",
+                help="The total dollar value of your portfolio based on the current market prices of all included stocks."
             )
 
         with col2:
             st.metric(
-                "Expected Annual Return",
+                "Expected Annual Return", 
                 f"{st.session_state.portfolio_results['portfolio_expected_return']:.2f}%",
-                help="The estimated percentage return your portfolio is expected to achieve annually.",
+                help="The estimated percentage return your portfolio is expected to achieve annually, based on historical performance over the past year."
             )
 
         with col3:
             st.metric(
-                "Portfolio Volatility",
+                "Portfolio Volatility", 
                 f"{st.session_state.portfolio_results['portfolio_volatility']:.2f}%",
-                help="A measure of the portfolio's risk. Higher values indicate more risk.",
+                help="A measure of the portfolio's risk, calculated as the standard deviation of its returns over a period of one year. Higher values indicate more risk."
             )
 
         with col4:
             st.metric(
-                "Sharpe Ratio",
+                "Sharpe Ratio", 
                 f"{st.session_state.portfolio_results['sharpe_ratio']:.2f}",
-                help="A risk-adjusted measure of return.",
+                help="A risk-adjusted measure of return that indicates how much return you receive for each unit of risk taken. A higher value indicates a higher return on lower risk."
             )
 
+        # Display detailed stock breakdown
         st.subheader("Individual Stock Details")
 
+        # Convert the stock details dictionary into a DataFrame
         stock_details_df = pd.DataFrame.from_dict(
-            {
-                ticker: {
-                    "Weight (%)": details["weight"] * 100,
-                    "Annual Return (%)": details["annual_return"] * 100,
-                    "Annual Volatility (%)": details["annual_volatility"] * 100,
-                    "Shares": details["shares"],
-                    "Current Price": details["current_price"],
-                    "Total Value": details["total_value"],
-                }
-                for ticker, details in st.session_state.portfolio_results[
-                    "stock_details"
-                ].items()
-            },
-            orient="index",
+            {ticker: {
+                'Weight (%)': details['weight'] * 100,
+                'Annual Return (%)': details['annual_return'] * 100,
+                'Annual Volatility (%)': details['annual_volatility'] * 100,
+                'Shares': details['shares'],
+                'Current Price': details['current_price'],
+                'Total Value': details['total_value']
+            } for ticker, details in st.session_state.portfolio_results['stock_details'].items()},
+            orient='index'
         )
 
         # Display the DataFrame in Streamlit
