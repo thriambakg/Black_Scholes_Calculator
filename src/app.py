@@ -5,8 +5,7 @@ from heatmap_generator import generate_heatmaps
 from risk_return import main as calculate_portfolio_risk
 import yfinance as yf
 import pandas as pd
-
-
+from crypto_statistics import get_crypto_stats
 
 # Set page config
 st.set_page_config(layout="wide", page_title="Cosine", page_icon="📈")
@@ -64,6 +63,43 @@ if fetch_volatility_button and ticker_input:
         volatility_display.markdown(f"**Volatility for {ticker_input.upper()}:** {volatility:.4f}")
     except Exception as e:
         volatility_display.markdown(f"Error fetching volatility: {str(e)}")
+
+# Divider line
+st.markdown("---")
+
+# Title for the cryptocurrency section
+st.header("Cryptocurrency Statistics")
+
+# Create a dropdown to search/select a cryptocurrency
+crypto_symbols = ['BTC', 'ETH', 'XRP', 'LTC', 'DOGE', 'ADA', 'SOL']
+selected_crypto_symbol = st.selectbox("Select a Cryptocurrency", options=crypto_symbols, help="Select a cryptocurrency to get detailed information")
+
+# Map time_frame to its equivalent value in days
+time_frame_mapping = {
+    "6mo": 182,  # Approximation for 6 months
+    "1y": 365,   # 1 year
+    "5y": 1825   # 5 years
+}
+time_frame_mapped = time_frame_mapping[time_frame]  # Convert time_frame to days
+
+# Only update the placeholder with cryptocurrency details when a crypto is selected
+if selected_crypto_symbol:
+    stats = get_crypto_stats(selected_crypto_symbol, period = time_frame_mapped)
+
+    if "error" in stats:
+        st.error(stats["error"])
+    else:
+        # Display the current trading price and other details
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Current Price (USD)", f"${stats['current_price']:,.2f}")
+        with col2:
+            st.metric("24h Return (%)", f"{stats['price_change_24h']:.2f}%")
+        with col3:
+            st.metric("Annual Return (%)", f"{stats['annual_return']:.2f}%")
+        with col4: 
+            st.metric("Annualized Volatility (%)", f"{stats['volatility']:.2f}%")
+        
 
 # Divider line
 st.markdown("---")
