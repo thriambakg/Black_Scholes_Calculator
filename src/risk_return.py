@@ -60,7 +60,7 @@ def calculate_portfolio_variance(portfolio_weights, annual_volatilities, correla
     return np.sqrt(portfolio_variance)
 
 
-def calculate_portfolio_metrics(portfolio_tuples, period, risk_free_rate=0.05):
+def calculate_portfolio_metrics(portfolio_tuples, risk_free_rate=0.05):
     """
     Calculate portfolio risk and expected return.
     
@@ -83,7 +83,7 @@ def calculate_portfolio_metrics(portfolio_tuples, period, risk_free_rate=0.05):
     
     # Download historical stock data
     try:
-        stock_data = yf.download(stock_tickers, period=period)['Adj Close']
+        stock_data = yf.download(stock_tickers, period="1y")['Adj Close']
         logger.info(f"Successfully downloaded data for {stock_tickers}")
     except Exception as e:
         logger.error(f"Error downloading stock data: {e}")
@@ -111,7 +111,7 @@ def calculate_portfolio_metrics(portfolio_tuples, period, risk_free_rate=0.05):
         # Calculate individual stock metrics
         stock_returns = returns[ticker]
         avg_annual_return = stock_returns.mean() * 252  # Annualized return
-        annual_volatility = fv(ticker, period=period)
+        annual_volatility = fv(ticker)
         
         # Calculate portfolio weight
         stock_value = shares * current_price
@@ -138,7 +138,7 @@ def calculate_portfolio_metrics(portfolio_tuples, period, risk_free_rate=0.05):
     portfolio_expected_return = np.dot(portfolio_weights, expected_returns)
     
     # Portfolio variance calculation (including covariance)
-    correlation_matrix = calculate_correlation(stock_tickers,period=period)
+    correlation_matrix = calculate_correlation(stock_tickers)
 
     portfolio_volatility = calculate_portfolio_variance(portfolio_weights, annual_volatilities, correlation_matrix)
     
@@ -154,7 +154,7 @@ def calculate_portfolio_metrics(portfolio_tuples, period, risk_free_rate=0.05):
         'individual_stocks': stock_tickers
     }
 
-def main(portfolio_tuples,period="1y"):
+def main(portfolio_tuples):
     """
     Main function to process portfolio tuples and print results.
     
@@ -163,7 +163,7 @@ def main(portfolio_tuples,period="1y"):
     """
     try:
         # Calculate portfolio metrics
-        portfolio_metrics = calculate_portfolio_metrics(portfolio_tuples,period)
+        portfolio_metrics = calculate_portfolio_metrics(portfolio_tuples)
         
         # # Print formatted results
         # print("\n--- Portfolio Analysis ---")
