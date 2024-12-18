@@ -1,11 +1,11 @@
 import cryptocompare
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 
 def get_crypto_stats(selected_crypto_symbol, period=365):
     """
-    Fetch cryptocurrency statistics with robust error handling.
+    Fetch cryptocurrency statistics without error handling except for exceptions.
 
     Args:
         selected_crypto_symbol (str): Cryptocurrency ticker symbol (e.g., 'BTC').
@@ -22,16 +22,9 @@ def get_crypto_stats(selected_crypto_symbol, period=365):
             limit=period,  # Fetch `period` days of data
             toTs=int(datetime.now().timestamp())
         )
-        # Validate the API response
-        if not raw_data or not isinstance(raw_data, list):
-            return {"error": "Invalid data received from the API"}
 
         # Convert the raw data to a DataFrame for easier handling
         df = pd.DataFrame(raw_data)
-
-        # Check if 'time' and 'close' columns exist in the DataFrame
-        if 'time' not in df or 'close' not in df:
-            return {"error": "Required fields 'time' or 'close' are missing from the API response"}
 
         # Convert 'time' to datetime and set it as the index
         df['time'] = pd.to_datetime(df['time'], unit='s', errors='coerce')
