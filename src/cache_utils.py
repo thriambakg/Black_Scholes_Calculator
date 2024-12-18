@@ -9,7 +9,6 @@ from crypto_statistics import get_crypto_stats
 from risk_return import (
     calculate_portfolio_metrics,
     calculate_correlation,
-    calculate_portfolio_variance
 )
 
 # Caching Strategy for Expensive Computations
