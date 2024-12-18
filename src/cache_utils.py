@@ -41,7 +41,7 @@ def cached_get_crypto_stats(symbol, period):
     Returns:
         dict: Cryptocurrency statistics
     """
-    st.write(f"Cache Miss - Fetching data for {symbol} with period {period}")
+    print(f"Cache Miss - Fetching data for {symbol} with period {period}")
     return get_crypto_stats(symbol, period)
 
 @st.cache_data(ttl=3600)
