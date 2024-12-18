@@ -23,10 +23,23 @@ def get_crypto_stats(selected_crypto_symbol, period=365):
             toTs=int(datetime.now().timestamp())
         )
 
+        # Validate the API response
+        if not raw_data or not isinstance(raw_data, list):
+            return {"error": "Invalid data received from the API"}
+
         # Convert the raw data to a DataFrame for easier handling
         df = pd.DataFrame(raw_data)
-        df['time'] = pd.to_datetime(df['time'], unit='s')
+
+        # Check if 'time' and 'close' columns exist in the DataFrame
+        if 'time' not in df or 'close' not in df:
+            return {"error": "Required fields 'time' or 'close' are missing from the API response"}
+
+        # Convert 'time' to datetime and set it as the index
+        df['time'] = pd.to_datetime(df['time'], unit='s', errors='coerce')
         df.set_index('time', inplace=True)
+
+        # Drop any rows with missing data
+        df.dropna(subset=['close'], inplace=True)
 
         # Ensure the DataFrame has enough data to calculate statistics
         if len(df) < 2:
