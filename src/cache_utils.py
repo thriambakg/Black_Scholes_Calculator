@@ -29,16 +29,19 @@ def cached_fetch_volatility(_fetch_function, ticker, period):
 
 @st.cache_data(ttl=86400)  # Cache crypto stats for 24 hours
 def cached_get_crypto_stats(symbol, period):
+
     """
     Cached wrapper for cryptocurrency statistics
     
     Args:
         symbol (str): Cryptocurrency symbol
         period (int): Time period in days
+        @st.cache_data(ttl=86400)  # Cache for 24 hours
     
     Returns:
         dict: Cryptocurrency statistics
     """
+    st.write(f"Cache Miss - Fetching data for {symbol} with period {period}")
     return get_crypto_stats(symbol, period)
 
 @st.cache_data(ttl=3600)
