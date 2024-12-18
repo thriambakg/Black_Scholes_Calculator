@@ -22,7 +22,7 @@ def get_crypto_stats(selected_crypto_symbol, period=365):
             limit=period,  # Fetch `period` days of data
             toTs=int(datetime.now().timestamp())
         )
-
+        return raw_data
         # Validate the API response
         if not raw_data or not isinstance(raw_data, list):
             return {"error": "Invalid data received from the API"}
