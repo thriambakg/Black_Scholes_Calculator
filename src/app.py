@@ -28,7 +28,7 @@ def main():
     # Initialize session state
     initialize_session_state()
 
-    st.title("Cosine - Your interactive Stock Assistant")
+    st.title("Cosine - Your interactive Investment Assistant")
 
     # Time Frame Selection
     time_frame_selection()
