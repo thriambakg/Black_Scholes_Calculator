@@ -42,6 +42,10 @@ def main():
     crypto_stats_section()
     st.markdown("---")
 
+    # Portfolio Risk Calculator
+    portfolio_risk_section()
+    st.markdown("---")
+
     # Black-Scholes Option Pricing
     option_pricing_section()
     st.markdown("---")
@@ -50,9 +54,7 @@ def main():
     heatmap_section()
     st.markdown("---")
 
-    # Portfolio Risk Calculator
-    portfolio_risk_section()
-    st.markdown("---")
+
 
 def time_frame_selection():
     st.sidebar.header("Time frame involved in Analytics")
