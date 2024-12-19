@@ -29,7 +29,6 @@ def main():
     initialize_session_state()
 
     st.title("Cosine - Your interactive Stock Assistant")
-    st.markdown("---")
 
     # Time Frame Selection
     time_frame_selection()
