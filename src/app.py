@@ -29,24 +29,31 @@ def main():
     initialize_session_state()
 
     st.title("Cosine - Your interactive Stock Assistant")
+    st.markdown("---")
 
     # Time Frame Selection
     time_frame_selection()
+    st.markdown("---")
 
     # Stock Volatility Section
     stock_volatility_section()
+    st.markdown("---")
 
     # Cryptocurrency Statistics
     crypto_stats_section()
+    st.markdown("---")
 
     # Black-Scholes Option Pricing
     option_pricing_section()
+    st.markdown("---")
 
     # Heatmap Visualization
     heatmap_section()
+    st.markdown("---")
 
     # Portfolio Risk Calculator
     portfolio_risk_section()
+    st.markdown("---")
 
 def time_frame_selection():
     st.sidebar.header("Time frame involved in Analytics")
