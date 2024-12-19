@@ -62,7 +62,6 @@ def time_frame_selection():
         options=["6mo", "1y", "5y"],
         index=["6mo", "1y", "5y"].index(st.session_state["time_frame"])
     )
-
     # Update time-dependent sections if time frame changes
     if st.session_state["time_frame"] != time_frame:
         st.session_state["previous_time_frame"] = st.session_state["time_frame"]
@@ -154,6 +153,8 @@ def option_pricing_section():
     """
     st.header("Black-Scholes Calculation")
 
+    st.sidebar.header("Black-Scholes Calculation Input Parameters")
+
     # Move sidebar inputs outside of cached function
     sidebar_inputs = {
         "S": st.sidebar.number_input("Current Stock Price (S)", 
@@ -223,6 +224,7 @@ def heatmap_section():
     st.write("Visualize how Call and Put option prices change with different stock prices and volatilities.")
 
     # Get heatmap parameters with validation - moved outside of cached function
+    st.sidebar.header("Heatmap parameters")
     min_S = st.sidebar.number_input("Minimum Stock Price (S)", min_value=0.0, step=1.0, value=50.0)
     max_S = st.sidebar.number_input("Maximum Stock Price (S)", min_value=0.0, step=1.0, value=150.0)
     min_sigma = st.sidebar.slider("Minimum Volatility (σ)", 0.01, 1.0, 0.1)
