@@ -1,6 +1,7 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import re
 
 # Import custom modules
 from cache_utils import (
@@ -13,6 +14,7 @@ from black_scholes import black_scholes
 from volatility_fetcher import fetch_volatility
 from heatmap_generator import generate_heatmaps
 from risk_return import main as calculate_portfolio_risk
+from stock_alert import monitor_stock
 
 # Initial Setup
 st.set_page_config(layout="wide", page_title="Cosine", page_icon="📈")
@@ -46,6 +48,10 @@ def main():
     portfolio_risk_section()
     st.markdown("---")
 
+    # Stock Alerts Section
+    stock_alerts_section()
+    st.markdown("---")
+
     # Black-Scholes Option Pricing
     option_pricing_section()
     st.markdown("---")
@@ -54,7 +60,89 @@ def main():
     heatmap_section()
     st.markdown("---")
 
+def stock_alerts_section():
+    st.header("Stock Price Alerts")
+    st.write("Set up email alerts for when stocks reach your target price.")
 
+    # Email input with validation
+    email = st.text_input("Email Address")
+    if email and not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        st.error("Please enter a valid email address")
+        return
+
+    # Stock ticker input with suggestions
+    ticker = st.text_input("Stock Ticker Symbol").upper()
+    if ticker:
+        search_suggestions = [t for t in STOCK_TICKERS if t.startswith(ticker)]
+        if search_suggestions:
+            st.write("Suggestions: ", ", ".join(search_suggestions))
+
+
+
+    # Comparison dropdown for greater than or less than
+    comparison_choice = st.selectbox(
+        "Price Condition",
+        options=["Greater Than", "Less Than"],
+        index=0,
+        help="Choose whether to trigger the alert when the price is greater than or less than the threshold."
+    )
+    comparison_mode = 1 if comparison_choice == "Greater Than" else 0
+
+    # Price threshold input
+    price_threshold = st.number_input("Price Threshold ($)", min_value=0.01, step=0.01)
+
+    # Add alert button
+    if st.button("Add Alert"):
+        if email and ticker and price_threshold > 0:
+            # Validate stock ticker
+            try:
+                current_price = safe_fetch_stock_price(ticker)
+                if current_price is not None:
+                    new_alert = {
+                        "email": email,
+                        "ticker": ticker,
+                        "price_threshold": price_threshold,
+                        "current_price": current_price,
+                        "comparison_mode": "Greater Than" if comparison_mode == 1 else "Less Than"
+                    }
+                    st.session_state.alerts.append(new_alert)
+
+                    # Monitor stock
+                    try:
+                        monitor_stock(email, ticker, price_threshold, comparison_mode)
+                        st.success(
+                            f"Alert set for {ticker} when price is {'above' if comparison_mode == 1 else 'below'} ${price_threshold:.2f}."
+                        )
+                    except Exception as e:
+                        st.error(f"Error setting up alert: {str(e)}")
+                else:
+                    st.error(f"Could not validate stock ticker {ticker}")
+            except Exception as e:
+                st.error(f"Error validating stock ticker: {str(e)}")
+        else:
+            st.error("Please fill in all fields")
+
+    # Display existing alerts
+    if st.session_state.alerts:
+        st.subheader("Your Active Alerts")
+        alerts_df = pd.DataFrame(st.session_state.alerts)
+        alerts_df = alerts_df.rename(columns={
+            "email": "Email",
+            "ticker": "Stock",
+            "price_threshold": "Alert Price",
+            "current_price": "Current Price",
+            "comparison_mode": "Condition"
+        })
+        
+        # Format price columns
+        alerts_df["Alert Price"] = alerts_df["Alert Price"].map("${:.2f}".format)
+        alerts_df["Current Price"] = alerts_df["Current Price"].map("${:.2f}".format)
+        
+        st.dataframe(alerts_df)
+
+        if st.button("Clear All Alerts"):
+            st.session_state.alerts = []
+            st.success("All alerts cleared")
 
 def time_frame_selection():
     st.sidebar.header("Time frame involved in Analytics")

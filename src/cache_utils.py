@@ -101,30 +101,39 @@ def cached_correlation_matrix(tickers, period="1y"):
 
 def initialize_session_state():
     """
-    Centralize and standardize session state initialization
+    Centralize and standardize session state initialization for the app.
+    This function ensures that session state variables are set to their default values
+    if they are not already initialized.
     """
+    # Define the default values for the session state
     default_states = {
-        "time_frame": "1y",
-        "portfolio_risk_entries": [{"stock": "", "shares": 0.0}],
-        "portfolio_risk_results": None,
-        "current_volatility_ticker": "AAPL",
-        "current_volatility": None,
-        "crypto_stats": None,
+        "time_frame": "1y",  # Default time frame for stock data
+        "portfolio_risk_entries": [{"stock": "", "shares": 0.0}],  # Default portfolio risk entries
+        "portfolio_risk_results": None,  # Portfolio risk results will be calculated dynamically
+        "current_volatility_ticker": "AAPL",  # Default ticker for volatility calculations
+        "current_volatility": None,  # Placeholder for current volatility data
+        "crypto_stats": None,  # Placeholder for cryptocurrency statistics
         "heatmap_params": {
-            "min_S": None,
-            "max_S": None,
-            "min_sigma": None,
-            "max_sigma": None,
+            "min_S": None,  # Minimum spot price for heatmap
+            "max_S": None,  # Maximum spot price for heatmap
+            "min_sigma": None,  # Minimum volatility for heatmap
+            "max_sigma": None,  # Maximum volatility for heatmap
         },
-        "heatmaps": None,
-        "selected_crypto": "BTC",
-        "correlation_matrix": None,
-        "portfolio_metrics_cache": None
+        "heatmaps": None,  # Placeholder for heatmaps
+        "selected_crypto": "BTC",  # Default selected cryptocurrency for stats
+        "correlation_matrix": None,  # Placeholder for correlation matrix
+        "portfolio_metrics_cache": None,  # Cache for portfolio metrics
+        "alerts": []  # Initialize alerts as an empty list
     }
     
+    # Iterate through default_states and initialize session state if necessary
     for key, default_value in default_states.items():
         if key not in st.session_state:
             st.session_state[key] = default_value
+
+    # Ensure that alerts are initialized as an empty list
+    if "alerts" not in st.session_state:
+        st.session_state.alerts = []
 
 @st.cache_data(ttl=3600)
 def get_portfolio_performance_metrics(portfolio_tuples, period="1y"):
