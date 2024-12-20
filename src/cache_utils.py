@@ -5,8 +5,8 @@ import numpy as np
 from datetime import datetime
 
 # Import custom modules
-from crypto.crypto_statistics import get_crypto_stats
-from stocks.risk_return import (
+from crypto_statistics import get_crypto_stats
+from risk_return import (
     calculate_portfolio_metrics,
     calculate_correlation,
 )
