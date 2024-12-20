@@ -2,7 +2,7 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import logging
-from volatility_fetcher import fetch_volatility as fv
+from stocks.volatility_fetcher import fetch_volatility as fv
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

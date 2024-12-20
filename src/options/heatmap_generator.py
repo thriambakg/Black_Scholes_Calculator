@@ -1,6 +1,6 @@
 import numpy as np
 import plotly.graph_objects as go
-from black_scholes import black_scholes
+from options.black_scholes import black_scholes
 
 def generate_heatmaps(S, K, T, r, min_S, max_S, min_sigma, max_sigma):
         # Generate heatmap data
