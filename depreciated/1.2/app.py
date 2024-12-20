@@ -5,7 +5,7 @@ from heatmap_generator import generate_heatmaps
 from risk_return import main as calculate_portfolio_risk
 import yfinance as yf
 import pandas as pd
-from crypto_statistics import get_crypto_stats
+from crypto.crypto_statistics import get_crypto_stats
 
 # Set page config
 st.set_page_config(layout="wide", page_title="Cosine", page_icon="📈")

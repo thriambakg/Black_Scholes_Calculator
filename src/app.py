@@ -10,11 +10,11 @@ from cache_utils import (
     safe_fetch_stock_price, 
     initialize_session_state
 )
-from black_scholes import black_scholes
-from volatility_fetcher import fetch_volatility
-from heatmap_generator import generate_heatmaps
-from risk_return import main as calculate_portfolio_risk
-from stock_alert import monitor_stock
+from options.black_scholes import black_scholes
+from stocks.volatility_fetcher import fetch_volatility
+from options.heatmap_generator import generate_heatmaps
+from stocks.risk_return import main as calculate_portfolio_risk
+from stocks.stock_alert import monitor_stock
 
 # Initial Setup
 st.set_page_config(layout="wide", page_title="Cosine", page_icon="📈")
