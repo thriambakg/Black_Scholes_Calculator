@@ -408,6 +408,9 @@ def portfolio_risk_section():
 def add_portfolio_entry():
     st.session_state.portfolio_risk_entries.append({"stock": "", "shares": 0.0})
 
+def remove_portfolio_entry(index):
+    del st.session_state.portfolio_risk_entries[index]
+
 def calculate_and_update_portfolio_risk():
     portfolio_tuples = []
     for entry in st.session_state.portfolio_risk_entries:
@@ -454,6 +457,10 @@ def display_portfolio_entries():
                 key=f"shares_input_{i}",
                 format="%.3f"
             )
+
+        with col3: 
+            if st.button("Remove", key=f"remove_{i}"):
+                remove_portfolio_entry(i)
 
 def display_portfolio_results():
     if not st.session_state.portfolio_risk_results:
