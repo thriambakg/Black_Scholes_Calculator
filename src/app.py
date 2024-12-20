@@ -30,34 +30,55 @@ def main():
     # Initialize session state
     initialize_session_state()
 
-    st.title("Cosine - Your interactive Investment Assistant")
+    st.title("Cosine - Your Interactive Investment Assistant")
 
     # Time Frame Selection
-    time_frame_selection()
+    try:
+        time_frame_selection()
+    except Exception as e:
+        st.error(f"An error occurred in Time Frame Selection: {e}")
     st.markdown("---")
 
     # Stock Volatility Section
-    stock_volatility_section()
+    try:
+        stock_volatility_section()
+    except Exception as e:
+        st.error(f"An error occurred in Stock Volatility Section: {e}")
     st.markdown("---")
 
     # Cryptocurrency Statistics
-    crypto_stats_section()
+    try:
+        crypto_stats_section()
+    except Exception as e:
+        st.error(f"An error occurred in Cryptocurrency Statistics: {e}")
     st.markdown("---")
 
     # Portfolio Risk Calculator
-    portfolio_risk_section()
+    try:
+        portfolio_risk_section()
+    except Exception as e:
+        st.error(f"An error occurred in Portfolio Risk Calculator: {e}")
     st.markdown("---")
 
     # Stock Alerts Section
-    stock_alerts_section()
+    try:
+        stock_alerts_section()
+    except Exception as e:
+        st.error(f"An error occurred in Stock Alerts Section: {e}")
     st.markdown("---")
 
     # Black-Scholes Option Pricing
-    option_pricing_section()
+    try:
+        option_pricing_section()
+    except Exception as e:
+        st.error(f"An error occurred in Black-Scholes Option Pricing: {e}")
     st.markdown("---")
 
     # Heatmap Visualization
-    heatmap_section()
+    try:
+        heatmap_section()
+    except Exception as e:
+        st.error(f"An error occurred in Heatmap Visualization: {e}")
     st.markdown("---")
 
 def stock_alerts_section():
