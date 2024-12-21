@@ -13,7 +13,7 @@ from cache_utils import (
 from options.black_scholes import black_scholes
 from stocks.volatility_fetcher import fetch_volatility
 from options.heatmap_generator import generate_heatmaps
-from stocks.risk_return import main as calculate_portfolio_risk
+from stocks.risk_return import calculate_portfolio_metrics as calculate_portfolio_risk
 from stocks.stock_alert import monitor_stock
 
 # Initial Setup

@@ -154,47 +154,4 @@ def calculate_portfolio_metrics(portfolio_tuples, period, risk_free_rate=0.05):
         'individual_stocks': stock_tickers
     }
 
-def main(portfolio_tuples,period="1y"):
-    """
-    Main function to process portfolio tuples and print results.
-    
-    Args:
-    portfolio_tuples (list): List of tuples with (stock_ticker, number_of_shares, current_price)
-    """
-    try:
-        # Calculate portfolio metrics
-        portfolio_metrics = calculate_portfolio_metrics(portfolio_tuples,period)
-        
-        # # Print formatted results
-        # print("\n--- Portfolio Analysis ---")
-        # print(f"Total Portfolio Value: ${portfolio_metrics['total_portfolio_value']:,.2f}")
-        # print(f"Portfolio Expected Annual Return: {portfolio_metrics['portfolio_expected_return']:.2f}%")
-        # print(f"Portfolio Volatility (Risk): {portfolio_metrics['portfolio_volatility']:.2f}%")
-        # print(f"Sharpe Ratio: {portfolio_metrics['sharpe_ratio']:.2f}")
-        
-        # print("\nIndividual Stock Details:")
-        # for ticker, details in portfolio_metrics['stock_details'].items():
-        #     print(f"\n{ticker}:")
-        #     print(f"  Shares: {details['shares']}")
-        #     print(f"  Current Price: ${details['current_price']:.2f}")
-        #     print(f"  Total Value: ${details['shares'] * details['current_price']:,.2f}")
-        #     print(f"  Weight: {details['weight']*100:.2f}%")
-        #     print(f"  Annual Return: {details['annual_return']*100:.2f}%")
-        #     print(f"  Annual Volatility: {details['annual_volatility']*100:.2f}%")
-        
-        return portfolio_metrics
-    
-    except Exception as e:
-        print(f"Error calculating portfolio metrics: {e}")
-        logger.error(f"Portfolio calculation failed: {e}")
-        return None
 
-# # Allow direct script execution for testing
-# if __name__ == "__main__":
-#     # Example usage for testing
-#     test_portfolio = [
-#         ('AAPL', 10, 190.50),  # ticker, shares, current price
-#         ('GOOGL', 5, 125.75),
-#         ('MSFT', 7, 340.20)
-#     ]
-#     main(test_portfolio)
